@@ -1,0 +1,44 @@
+import numpy as np
+import scipy as sp
+import matplotlib.pyplot as plt
+from neural_network import *
+
+from sklearn.datasets import make_circles
+
+n = 50
+p = 2
+
+X, Y = make_circles(n_samples=n, factor=0.5, noise=0.05)
+
+plt.scatter(X[Y==0, 0], X[Y==0, 1], c="skyblue")
+plt.scatter(X[Y==1, 0], X[Y==1, 1], c="salmon")
+plt.axis("equal")
+plt.show()
+
+inputs = np.array(list(zip(X[:, 0], X[:, 1])))
+print(inputs)
+
+input_length = 2
+output_length = 1
+n_hidden_layers = 4
+n_neurons_array = [4] * n_hidden_layers
+beta = 0.5
+my_NN = NeuralNetwork(input_length, output_length, n_hidden_layers, n_neurons_array, learning_rate=beta, activation=Sigmoid())
+
+n_epochs = int(1e2)
+MSE_array = [None] * n_epochs
+
+# Enable interactive mode for live updating
+plt.ion()
+
+# Create the initial plot
+plt.figure(figsize=(8, 6))
+line, = plt.plot([], [], label='Training error')
+plt.xlabel('Epoch')
+plt.ylabel('MSE')
+plt.title('Training error Over Time')
+plt.legend()
+plt.grid(True)
+
+
+for t in range(n_epochs):
