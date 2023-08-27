@@ -2,6 +2,7 @@ from flappy_bird_functions import *
 from neural_network import *
 from deep_Q import run_game
 import copy
+import pickle
 
 def take_action(Q_nn, state_input, game_idx, epsilon=0.15):
     state = copy.deepcopy(state_input)
@@ -44,4 +45,8 @@ for game_idx in range(n_games):
     
     all_cum_rewards[game_idx] = cum_reward
     all_scores[game_idx] = score
+
+with open('final_NN', 'wb') as file: pickle.dump(Q_nn, file)
+np.savetxt('reward_curve', all_cum_rewards)
+np.savetxt('score_curve', all_scores)
 
