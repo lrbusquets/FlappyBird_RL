@@ -3,7 +3,7 @@ from neural_network import *
 from deep_Q import run_game
 import copy
 
-def take_action(Q_nn, state_input, game_idx, epsilon=0.1):
+def take_action(Q_nn, state_input, game_idx, epsilon=0.15):
     state = copy.deepcopy(state_input)
     epsilon = epsilon * np.exp(-game_idx/10000*4)
 
@@ -22,20 +22,26 @@ def take_action(Q_nn, state_input, game_idx, epsilon=0.1):
 
 input_length = 8  # state + action + action_prev
 output_length = 1
-n_hidden_layers = 4
-n_neurons_array = [8] * n_hidden_layers
+n_hidden_layers = 5
+n_neurons_array = [20] * n_hidden_layers
 Q_nn = NeuralNetwork(input_length, output_length, n_hidden_layers, n_neurons_array, learning_rate=5e-4 ,activation=ReLU())
 Q_hat_nn = copy.deepcopy(Q_nn)
 
 n_games = 100000
-D_buffer = [None] * 1500   # replay buffer
+D_buffer = [None] * 50000   # replay buffer
 global_D_idx = 0
 hi_score = 0
+
+all_cum_rewards = [None] * n_games
+all_scores  = [None] * n_games
 
 for game_idx in range(n_games):
 
     Q_nn, Q_hat_nn, D_buffer, global_D_idx, score, cum_reward = run_game(take_action, Q_nn, Q_hat_nn, D_buffer, global_D_idx, game_idx)
     if score>hi_score:
         hi_score = copy.deepcopy(score)
-    print(f"Game run - cum_reward {cum_reward} -  score {score} - current record: {hi_score}")
+    print(f"Game {game_idx} run - cum_reward {cum_reward} -  score {score} - current record: {hi_score}")
+    
+    all_cum_rewards[game_idx] = cum_reward
+    all_scores[game_idx] = score
 

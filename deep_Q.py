@@ -4,7 +4,7 @@ gamma = 0.95
 crash_reward = -5000
 step_reward = 5
 
-def sample_from_buffer(D_buffer_input, global_D_idx, m=30):
+def sample_from_buffer(D_buffer_input, global_D_idx, m=64):
     D_buffer = copy.deepcopy(D_buffer_input[:(global_D_idx+1)])
     length = len(D_buffer)
     if length<m:
@@ -156,7 +156,7 @@ def run_game(take_action, Q_nn, Q_hat, D_buffer, global_D_idx, game_idx, game_pa
             state_prev = copy.deepcopy(state)
             action_prev = copy.deepcopy(u)
 
-        if global_D_idx % 600 == 0:
+        if global_D_idx % 10000 == 0:
             Q_hat = copy.deepcopy(Q_nn)
 
         bird_group.update()
