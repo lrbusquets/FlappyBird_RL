@@ -29,7 +29,11 @@ Q_nn = NeuralNetwork(input_length, output_length, n_hidden_layers, n_neurons_arr
 Q_hat_nn = copy.deepcopy(Q_nn)
 
 n_games = 25000
+<<<<<<< HEAD
 D_buffer = [None] * 1000   # replay buffer
+=======
+D_buffer = [None] * 50000   # replay buffer
+>>>>>>> ed7ee8b19dd8241f7da79588eaecc58b1f980e4d
 global_D_idx = 0
 hi_score = 0
 
