@@ -1,0 +1,7 @@
+epsilon 0.15
+np.exp(-game_idx/10000*4)
+n_hidden_layers = 5
+n_neurons_array = [10] * n_hidden_layers
+n_games = 25000
+D_buffer = [None] * 1000   # replay buffer
+C = 10000

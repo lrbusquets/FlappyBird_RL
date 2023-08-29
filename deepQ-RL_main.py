@@ -24,12 +24,12 @@ def take_action(Q_nn, state_input, game_idx, epsilon=0.15):
 input_length = 8  # state + action + action_prev
 output_length = 1
 n_hidden_layers = 5
-n_neurons_array = [20] * n_hidden_layers
+n_neurons_array = [10] * n_hidden_layers
 Q_nn = NeuralNetwork(input_length, output_length, n_hidden_layers, n_neurons_array, learning_rate=5e-4 ,activation=ReLU())
 Q_hat_nn = copy.deepcopy(Q_nn)
 
-n_games = 100000
-D_buffer = [None] * 50000   # replay buffer
+n_games = 25000
+D_buffer = [None] * 1000   # replay buffer
 global_D_idx = 0
 hi_score = 0
 
