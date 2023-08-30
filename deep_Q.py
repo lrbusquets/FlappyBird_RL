@@ -4,7 +4,7 @@ gamma = 0.95
 crash_reward = -5000
 step_reward = 5
 
-def sample_from_buffer(D_buffer_input, global_D_idx, m=30):
+def sample_from_buffer(D_buffer_input, global_D_idx, m=64):
     D_buffer = copy.deepcopy(D_buffer_input[:(global_D_idx+1)])
     length = len(D_buffer)
     if length<m:

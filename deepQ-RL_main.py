@@ -2,8 +2,9 @@ from flappy_bird_functions import *
 from neural_network import *
 from deep_Q import run_game
 import copy
+import pickle
 
-def take_action(Q_nn, state_input, game_idx, epsilon=0.1):
+def take_action(Q_nn, state_input, game_idx, epsilon=0.15):
     state = copy.deepcopy(state_input)
     epsilon = epsilon * np.exp(-game_idx/10000*4)
 
@@ -28,14 +29,25 @@ Q_nn = NeuralNetwork(input_length, output_length, n_hidden_layers, n_neurons_arr
 Q_hat_nn = copy.deepcopy(Q_nn)
 
 n_games = 25000
-D_buffer = [None] * 50000   # replay buffer
+
+D_buffer = [None] * 1000   # replay buffer
 global_D_idx = 0
 hi_score = 0
+
+all_cum_rewards = [None] * n_games
+all_scores  = [None] * n_games
 
 for game_idx in range(n_games):
 
     Q_nn, Q_hat_nn, D_buffer, global_D_idx, score, cum_reward = run_game(take_action, Q_nn, Q_hat_nn, D_buffer, global_D_idx, game_idx)
     if score>hi_score:
         hi_score = copy.deepcopy(score)
-    print(f"Game run - cum_reward {cum_reward} -  score {score} - current record: {hi_score}")
+    print(f"Game {game_idx} run - cum_reward {cum_reward} -  score {score} - current record: {hi_score}")
+    
+    all_cum_rewards[game_idx] = cum_reward
+    all_scores[game_idx] = score
+
+with open('final_NN', 'wb') as file: pickle.dump(Q_nn, file)
+np.savetxt('reward_curve', all_cum_rewards)
+np.savetxt('score_curve', all_scores)
 
