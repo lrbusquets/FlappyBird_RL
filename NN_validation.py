@@ -8,7 +8,7 @@ if fun == "sqrt" or fun == "sinc":
 elif fun == "ripple":
     input_length = 2
 
-def function_plot(my_NN):
+def function_plot(my_NN, method=None):
 
     if input_length == 1:
         # generate the two curves to compare
@@ -29,6 +29,10 @@ def function_plot(my_NN):
         plt.legend()  # Display legend
         plt.grid(True)  # Optional: Add grid
         plt.show()
+
+        np.savetxt('data_files/benchmark_1_x.dat', np.array(x_array))
+        np.savetxt('data_files/benchmark_1_y.dat', np.array(y_array))
+        np.savetxt('data_files/benchmark_1_ypred_' + method + '.dat', np.array(y_NN_array))
 
     elif input_length == 2:
 
@@ -80,7 +84,7 @@ def my_fun(input, fun="sqrt"):
         return amp * np.cos(freq * r) * np.exp(-0.5*r)
 
     
-def get_dataset(n_samples=1000, method="random"):
+def get_dataset(n_samples=10000, method="random"):
     
     if method == "random":
         inputs_array = np.array([None] * n_samples)
@@ -98,75 +102,67 @@ def get_dataset(n_samples=1000, method="random"):
 
     return inputs_array, outputs_array
 
+methods = ["Adam", "basic"]
+all_errors = []
+
+for method in methods:
+
+    output_length = 1
+    n_hidden_layers = 6
+    n_neurons_array = [18] * n_hidden_layers
+    beta = 0.01
+    my_NN = NeuralNetwork(input_length, output_length, n_hidden_layers, n_neurons_array, learning_rate=beta, activation=Sigmoid(), grad_desc_method=method)
+
+    n_epochs = int(3e2)
+    MSE_array = [None] * n_epochs
+    std_array = [None] * n_epochs
+
+    # Enable interactive mode for live updating
+    plt.ion()
+
+    # Create the initial plot
+    plt.figure(figsize=(8, 6))
+    line, = plt.plot([], [], label=method)
+    plt.xlabel('Epoch')
+    plt.ylabel('MSE')
+    plt.title('Training error Over Time')
+    plt.legend()
+    plt.grid(True)
+
+    n_samples = 500
+    inputs_array, outputs_array = get_dataset(n_samples)
 
 
-output_length = 1
-n_hidden_layers = 3
-n_neurons_array = [6] * n_hidden_layers
-beta = 0.02
-my_NN = NeuralNetwork(input_length, output_length, n_hidden_layers, n_neurons_array, learning_rate=beta, activation=ReLU())
+    for t in range(n_epochs):
 
-n_epochs = int(6e2)
-MSE_array = [None] * n_epochs
+        MSE_val, std = my_NN.train(inputs_array, outputs_array, training_it=t)
+        MSE_array[t] = MSE_val
+        std_array[t] = std
 
-# Enable interactive mode for live updating
-plt.ion()
+        print(f"Epoch {t},  MSE={MSE_val}, W000={my_NN.W_matrices[0][0][0]}, b00={my_NN.b_vectors[0][0]}")
 
-# Create the initial plot
-plt.figure(figsize=(8, 6))
-line, = plt.plot([], [], label='Training error')
-plt.xlabel('Epoch')
-plt.ylabel('MSE')
-plt.title('Training error Over Time')
-plt.legend()
-plt.grid(True)
+        epochs = np.linspace(0,t,t+1)
+        line.set_xdata(epochs)
+        error2plot = MSE_array[:(t+1)]
+        line.set_ydata(error2plot)
+        plt.xlim(0, t - 1)
+        plt.ylim(0.1 * np.min(error2plot), 10 * np.max(error2plot))
+        plt.yscale('log')
+        plt.fill_between([t], MSE_array[t] - std, MSE_array[t] + std, color='gray', alpha=0.2)
+        plt.pause(0.01)
 
-n_samples = 500
-inputs_array, outputs_array = get_dataset(n_samples)
+        if t>0 and np.abs(MSE_array[t]/MSE_array[t-1] - 1) < (1e-4 * MSE_array[0]):
+            inputs_array, outputs_array = get_dataset(n_samples)
+            print("Updating dataset...")
 
+    plt.ioff()
+    plt.show()
 
-for t in range(n_epochs):
+    # save learning curve
+    np.savetxt('data_files/benchmark_1_MSE_array' + method + '.dat', np.array(MSE_array))
+    np.savetxt('data_files/benchmark_1_std_array' + method + '.dat', np.array(std_array))
 
-    MSE_val, std = my_NN.train(inputs_array, outputs_array, training_it=t)
-
-    #NN_outputs = np.array([None] * n_samples)
-    #for i in range(n_samples):
-    #    NN_outputs[i] = my_NN.evaluate(inputs_array[i])
-
-    #error = NN_outputs - outputs_array
-    #MSE_val = mse(error)
-    #std = np.std(error)
-    MSE_array[t] = MSE_val
-
-    #print(f"Epoch {t}, input0={inputs_array[0]}, output0={NN_outputs[0]} MSE={MSE_val}, W000={my_NN.W_matrices[0][0][0]}, b00={my_NN.b_vectors[0][0]}")
-    print(f"Epoch {t},  MSE={MSE_val}, W000={my_NN.W_matrices[0][0][0]}, b00={my_NN.b_vectors[0][0]}")
-    #function_plot(my_NN)
-
-    #my_NN.backprop(2*error)
-    #my_NN.learning_rate = beta * np.exp(-0.01*t)
-
-    
-    epochs = np.linspace(0,t,t+1)
-    line.set_xdata(epochs)
-    error2plot = MSE_array[:(t+1)]
-    line.set_ydata(error2plot)
-    plt.xlim(0, t - 1)
-    plt.ylim(0.1 * np.min(error2plot), 10 * np.max(error2plot))
-    plt.yscale('log')
-    plt.fill_between([t], MSE_array[t] - std, MSE_array[t] + std, color='gray', alpha=0.2)
-    plt.pause(0.01)
-
-    if t>0 and np.abs(MSE_array[t]/MSE_array[t-1] - 1) < (1e-4 * MSE_array[0]):
-        inputs_array, outputs_array = get_dataset(n_samples)
-        print("Updating dataset...")
-
-plt.ioff()
-plt.show()
-
-# save learning curve
-np.savetxt('data_files/benchmark_1_MSE_array.dat', np.array(MSE_array))
-
-function_plot(my_NN)
+    function_plot(my_NN, method)
 
 input("Press enter to exit")
 

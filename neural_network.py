@@ -52,10 +52,11 @@ class Softplus:
         return 1/(1+np.exp(-x))
 
 class NeuralNetwork:
-    def __init__(self, input_length, output_length, n_hidden_layers, n_neurons_array, learning_rate = 0.1, activation=ReLU()):
+    def __init__(self, input_length, output_length, n_hidden_layers, n_neurons_array, learning_rate = 0.1, activation=ReLU(), grad_desc_method="Adam"):
         assert n_hidden_layers == len(n_neurons_array)
         
         self.activation = activation
+        self.grad_desc_method = grad_desc_method
 
         n_neurons_array.insert(0, input_length)
         n_neurons_array.append(output_length)
@@ -108,7 +109,7 @@ class NeuralNetwork:
 
         return input
     
-    def backprop_2(self, dC_daL_vec):
+    def backprop(self, dC_daL_vec):
 
         assert len(dC_daL_vec) == self.output_length, "The length of the introduced error gradient vector does not coincide with the output length declared when creating the Network object"
         dC_dal_vec = dC_daL_vec
@@ -128,7 +129,7 @@ class NeuralNetwork:
         for i in range(n_training_examples):
             NN_output = self.evaluate(training_examples[i])
             errors[i] = error_function(NN_output, target_outputs[i])
-            self.backprop_2(error_factor * errors[i])
+            self.backprop(error_factor * errors[i])
 
         self.apply_and_reset_gradients(n_training_examples)
         
@@ -146,7 +147,8 @@ class NeuralNetwork:
             self.grad_W_matrices[i] = np.zeros_like(self.grad_W_matrices[i])
             self.grad_b_vectors[i] = np.zeros_like(self.grad_b_vectors[i])
 
-    def update_params(self, method="Adam"):
+    def update_params(self):
+        method = self.grad_desc_method
         if method=="basic":
             self.W_matrices -= self.learning_rate * self.grad_W_matrices
             self.b_vectors -= self.learning_rate * self.grad_b_vectors
